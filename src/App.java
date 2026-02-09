@@ -2,102 +2,91 @@
 public class App {
 
     public static void main(String[] args) throws Exception {
-        Enemigo[] enemigos = new Enemigo[10];
-        aliado[] aliado = new aliado[20];
-        roca[] roca = new roca[30];
-        int filas = 10;
-        int columnas = 40;
-        for (int i = 0; i < enemigos.length; i++) {
-            enemigos[i] = new Enemigo(new Posicion((int) (Math.random() * filas), (int) (Math.random() * columnas)));
-        }
-        for (int i = 0; i < aliado.length; i++) {
-            aliado[i] = new aliado(new Posicion((int) (Math.random() * filas), (int) (Math.random() * columnas)));
-        }
-        for (int i = 0; i < roca.length; i++) {
-            roca[i] = new roca(new Posicion((int) (Math.random() * filas), (int) (Math.random() * columnas)));
-        }
-        char[][] tabla = rellenabi(filas, columnas, enemigos, aliado, roca);
-        mostrarTablero(tabla);
+
+        final int filas = 20;
+        final int columnas = 60;
+        final int NUM_ENEMIGO = 40;
+        final int NUM_ALIADO = 40;
+        final int NUM_MURO = 50;
+
+        // 🎲 Crear tablero
+        Entidad[][] tablero = new Entidad[filas][columnas];
+
+        // 🎯 Crear entidades (todas son Entidad)
+        tablero = rellenaEnemigo(NUM_ENEMIGO, filas, columnas, tablero);
+        tablero = rellenaAliado(NUM_ALIADO, filas, columnas, tablero);
+        tablero = rellenaMuro(NUM_MURO, filas, columnas, tablero);
+        char[][] tabla = rellenabi(filas, columnas, tablero);
+        mostrarTableroSimple(tabla);
     }
 
-    public static char[][] rellenabi(int filas, int columnas, Enemigo enemigos[], aliado aliados[], roca roca[]) {
+    public static char[][] rellenabi(int filas, int columnas, Entidad todos[][]) {
         char[][] array = new char[filas][columnas];
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {
-                array[i][j] = ' '; // vacío
-                boolean aux = false;
-                for (int j2 = 0; j2 < enemigos.length && !aux; j2++) {
-                    if (i == enemigos[j2].getPosicion().getFila() && j == enemigos[j2].getPosicion().getColumna()) {
-                        array[i][j] = enemigos[j2].getSimbolo(); // 'E'
-                        aux = true;
-                    }
-                }
-                for (int j2 = 0; j2 < aliados.length && !aux; j2++) {
-                    if (i == aliados[j2].getPosicion().getFila() && j == aliados[j2].getPosicion().getColumna()) {
-                        array[i][j] = aliados[j2].getSimbolo(); // 'X'
-                        aux = true;
-                    }
-                }
-                for (int j2 = 0; j2 < roca.length && !aux; j2++) {
-                    if (i == roca[j2].getPosicion().getFila() && j == roca[j2].getPosicion().getColumna()) {
-                        array[i][j] = roca[j2].getSimbolo(); // 'H'
-                        aux = true;
-                    }
+                if (todos[i][j] != null) {
+                    array[i][j] = todos[i][j].getSimbolo(); // 'E', 'A', 'X'
+                } else {
+                    array[i][j] = '.'; // vacío
                 }
             }
         }
         return array;
     }
 
-    public static void mostrarTablero(char[][] tablero) {
+    public static void mostrarTableroSimple(char[][] tablero) {
         for (int i = 0; i < tablero.length; i++) {
-            // Línea superior de bordes
             for (int j = 0; j < tablero[i].length; j++) {
-                if (j == 0 && i == 0) {
-                    System.out.print("┌");
-                } else if (j == 0 && i != 0) {
-                    System.out.print("├");
-                }
-
-                if (j == 0) {
-                    System.out.print("───");
-                } else if (i == 0) {
-                    System.out.print("┬───");
-                } else {
-                    System.out.print("┼───");
-                }
-
-                if (j == tablero[i].length - 1 && i == 0) {
-                    System.out.print("┐");
-                } else if (j == tablero[i].length - 1 && i != 0) {
-                    System.out.print("┤");
-                }
+                System.out.print(" " + tablero[i][j] + " ");
             }
             System.out.println();
-
-            // Línea con contenido
-            for (int j = 0; j < tablero[i].length; j++) {
-                System.out.printf("│ %c ", tablero[i][j]); // Char con espacio
-                if (j == tablero[i].length - 1) {
-                    System.out.print("│");
-                }
-            }
-            System.out.println();
-
-            // Línea inferior (solo en última fila)
-            if (i == tablero.length - 1) {
-                for (int j = 0; j < tablero[i].length; j++) {
-                    if (j == 0) {
-                        System.out.print("└");
-                    }
-                    if (j != tablero[i].length - 1) {
-                        System.out.print("───┴");
-                    } else {
-                        System.out.print("───┘");
-                    }
-                }
-                System.out.println();
-            }
         }
     }
+
+    public static Entidad[][] rellenaEnemigo(int num_enemigos, int filas, int columnas, Entidad[][] tabla) {
+        for (int i = 0; i < num_enemigos; i++) {
+            boolean esta = false;
+            while (esta == false) {
+                int auxfilas = (int) (Math.random() * filas);
+                int auxcolumnas = (int) (Math.random() * columnas);
+                if (tabla[auxfilas][auxcolumnas] == null) {
+                    tabla[auxfilas][auxcolumnas] = new Enemigo(new Posicion(auxfilas, auxcolumnas));
+                    esta = true;
+                }
+            }
+        }
+        return tabla;
+    }
+
+    public static Entidad[][] rellenaAliado(int num_Aliados, int filas, int columnas, Entidad[][] tabla) {
+        for (int i = 0; i < num_Aliados; i++) {
+            boolean esta = false;
+            while (esta == false) {
+                int auxfilas = (int) (Math.random() * filas);
+                int auxcolumnas = (int) (Math.random() * columnas);
+                if (tabla[auxfilas][auxcolumnas] == null) {
+                    tabla[auxfilas][auxcolumnas] = new Aliado(new Posicion(auxfilas, auxcolumnas));
+                    esta = true;
+                }
+            }
+        }
+        return tabla;
+
+    }
+
+    public static Entidad[][] rellenaMuro(int num_Muros, int filas, int columnas, Entidad[][] tabla) {
+        for (int i = 0; i < num_Muros; i++) {
+            boolean esta = false;
+            while (esta == false) {
+                int auxfilas = (int) (Math.random() * filas);
+                int auxcolumnas = (int) (Math.random() * columnas);
+                if (tabla[auxfilas][auxcolumnas] == null) {
+                    tabla[auxfilas][auxcolumnas] = new Muro(new Posicion(auxfilas, auxcolumnas));
+                    esta = true;
+                }
+            }
+        }
+        return tabla;
+    }
+
 }
