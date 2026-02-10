@@ -1,7 +1,7 @@
 public class Aliado extends Entidad {
 
     public Aliado(Posicion pos) {
-        super(pos, 'A');  // ← HERENCIA: usa constructor del padre
+        super(pos, 'A');
     }
 
 private static final int VISION = 5;
@@ -18,18 +18,14 @@ private static final int VISION = 5;
     private Enemigo buscarEnemigoEnVision(Entidad[][] tablero) {
         Enemigo mejor = null;
         int distMin = Integer.MAX_VALUE;
-
         int miFila = getPosicion().getFila();
         int miCol = getPosicion().getColumna();
-
         for (int df = -VISION; df <= VISION; df++) {
             for (int dc = -VISION; dc <= VISION; dc++) {
                 int fila = miFila + df;
                 int col = miCol + dc;
-
                 if (fila >= 0 && fila < tablero.length &&
                         col >= 0 && col < tablero[0].length) {
-
                     Entidad e = tablero[fila][col];
                     if (e instanceof Enemigo) { // ← aquí Enemigo
                         Enemigo enemigo = (Enemigo) e; // ← cast a Enemigo

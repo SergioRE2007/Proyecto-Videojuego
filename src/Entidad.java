@@ -4,22 +4,22 @@ public abstract class Entidad {
     private static final int VISION = 5; // ← común
 
     // Constructor
-    public Entidad(Posicion pos, char simbolo) {
+public Entidad(Posicion pos, char simbolo) {
         this.posicion = pos;
         this.simbolo = simbolo;
     }
 
     // Getters
-    public Posicion getPosicion() {
+public Posicion getPosicion() {
         return posicion;
     }
 
-    public char getSimbolo() {
+public char getSimbolo() {
         return simbolo;
     }
 
     // DISTANCIA COMÚN
-    protected int distanciaManhattan(Posicion p1, Posicion p2) {
+protected int distanciaManhattan(Posicion p1, Posicion p2) {
         return Math.abs(p1.getFila() - p2.getFila()) + Math.abs(p1.getColumna() - p2.getColumna());
     }
 
@@ -27,7 +27,6 @@ public abstract class Entidad {
 protected void moverHacia(Posicion destino, Entidad[][] tablero) {
     int filaDestino = destino.getFila();
     int colDestino = destino.getColumna();
-
     boolean movido = false;
 
     // Prioridad: vertical primero
@@ -51,16 +50,13 @@ protected void moverHacia(Posicion destino, Entidad[][] tablero) {
 protected void moverLejos(Posicion enemigoPos, Entidad[][] tablero) {
     int filaEnemigo = enemigoPos.getFila();
     int colEnemigo = enemigoPos.getColumna();
-
     boolean movido = false;
-
     // Primero intentar alejarse verticalmente
     if (filaEnemigo > posicion.getFila()) {
         movido = moverArriba(tablero);    // enemigo abajo → yo arriba
     } else if (filaEnemigo < posicion.getFila()) {
         movido = moverAbajo(tablero);     // enemigo arriba → yo abajo
     }
-
     // Si no ha podido, probar horizontalmente
     if (!movido) {
         if (colEnemigo > posicion.getColumna()) {
@@ -70,7 +66,6 @@ protected void moverLejos(Posicion enemigoPos, Entidad[][] tablero) {
         }
     }
 }
-
     // MOVIMIENTOS BÁSICOS (comunes)
 protected boolean moverArriba(Entidad[][] tablero) {
     int nuevaFila = posicion.getFila() - 1;
@@ -128,14 +123,12 @@ private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero)
     posicion.setFila(nuevaFila);
     posicion.setColumna(nuevaCol);
     tablero[nuevaFila][nuevaCol] = this;
-
     return true;
 }
 
 
     protected void moverRandom(Entidad[][] tablero) {
         int dir = (int) (Math.random() * 4); // 0..3
-
         switch (dir) {
             case 0 -> moverArriba(tablero); // usa moverSiPosible(...)
             case 1 -> moverAbajo(tablero);

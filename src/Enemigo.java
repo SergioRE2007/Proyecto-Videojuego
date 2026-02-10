@@ -1,17 +1,13 @@
 public class Enemigo extends Entidad { // ← HERENCIA AQUÍ
 
-    private static final int VISION = 5;
+    private static final int VISION = 10;
 
-    // Constructor: usa el de la madre + lo suyo
     public Enemigo(Posicion pos) {
-        super(pos, 'X'); // ← LLAMA AL CONSTRUCTOR DE Entidad
-
+        super(pos, 'X'); 
     }
 
-    // Comportamiento ESPECIAL del enemigo
     public void actuar(Entidad[][] tablero) {
         Aliado masCercanoEnVision = buscarAliadoEnVision(tablero);
-
         if (masCercanoEnVision != null) {
             moverHacia(masCercanoEnVision.getPosicion(), tablero);
         } else {
@@ -21,17 +17,12 @@ public class Enemigo extends Entidad { // ← HERENCIA AQUÍ
     private Aliado buscarAliadoEnVision(Entidad[][] tablero) {
     Aliado mejor = null;
     int distMin = Integer.MAX_VALUE;
-    
     int miFila = getPosicion().getFila();
     int miCol = getPosicion().getColumna();
-    
-    // Mirar cuadrado 11x11 centrado en mí (VISION=5)
     for (int df = -VISION; df <= VISION; df++) {
         for (int dc = -VISION; dc <= VISION; dc++) {
             int fila = miFila + df;
             int col = miCol + dc;
-            
-            // ¿Dentro del tablero?
             if (fila >= 0 && fila < tablero.length && 
                 col >= 0 && col < tablero[0].length) {
                 
