@@ -1,7 +1,6 @@
 public abstract class Entidad {
     protected Posicion posicion;
     protected char simbolo;
-    private static final int VISION = 5; // ← común
 
     // Constructor
 public Entidad(Posicion pos, char simbolo) {
@@ -97,23 +96,23 @@ private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero)
 
     Entidad destino = tablero[nuevaFila][nuevaCol];
 
-    // 1) Si es muro → nunca paso
+    // 1) Muro: nunca paso
     if (destino instanceof Muro) {
         return false;
     }
 
-    // 2) Si YO soy Enemigo y destino es Aliado → lo mato (piso la casilla)
+    // 2) Si YO soy Enemigo y destino es Aliado → lo mato (borro al aliado)
     if (this instanceof Enemigo && destino instanceof Aliado) {
-        tablero[nuevaFila][nuevaCol] = null; // quitar aliado
-        // y sigo adelante para colocarme yo ahí
+        tablero[nuevaFila][nuevaCol] = null; // quito al aliado
+        // sigo y me coloco yo en esa casilla
     }
 
-    // 3) Si YO soy Aliado y destino es Enemigo → NO me muevo (me bloquearía)
+    // 3) Si YO soy Aliado y destino es Enemigo → no me muevo
     if (this instanceof Aliado && destino instanceof Enemigo) {
         return false;
     }
 
-    // 4) Si queda algo en la casilla (otro enemigo/aliado) → no paso
+    // 4) Si queda cualquier cosa (otro enemigo, otro aliado) → no paso
     if (tablero[nuevaFila][nuevaCol] != null) {
         return false;
     }
@@ -123,8 +122,10 @@ private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero)
     posicion.setFila(nuevaFila);
     posicion.setColumna(nuevaCol);
     tablero[nuevaFila][nuevaCol] = this;
+
     return true;
 }
+
 
 
     protected void moverRandom(Entidad[][] tablero) {

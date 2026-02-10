@@ -4,9 +4,9 @@ public class App {
 
         final int filas = 30;
         final int columnas = 60;
-        final int NUM_ENEMIGO = 10;
-        final int NUM_ALIADO = 44;
-        final int NUM_MURO = 55;
+        final int NUM_ENEMIGO = 109;
+        final int NUM_ALIADO = 600;
+        final int NUM_MURO = 0;
 
         Entidad[][] tablero = new Entidad[filas][columnas];
 
