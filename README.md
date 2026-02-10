@@ -1,4 +1,4 @@
-# Juego de Tablero en Java (DAM)
+# Juego de Tablero en Java
 
 Proyecto de consola en Java donde **enemigos (X)** persiguen a **aliados (A)** en un tablero con **muros (M)** como obstáculos.  
 Está pensado como ejercicio de POO para el ciclo DAM: herencia, arrays bidimensionales e IA sencilla con campo de visión.
