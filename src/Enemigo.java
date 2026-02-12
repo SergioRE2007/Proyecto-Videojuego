@@ -1,8 +1,8 @@
-public class Enemigo extends Entidad { // ← HERENCIA AQUÍ
+public class Enemigo extends Entidad { 
 
-    private static final int VISION = 10;
+    private static final int VISION = 5;
 
-    public Enemigo(Posicion pos) {
+    public Enemigo(Posicion pos) { 
         super(pos, 'X'); 
     }
 
@@ -23,14 +23,11 @@ public class Enemigo extends Entidad { // ← HERENCIA AQUÍ
         for (int dc = -VISION; dc <= VISION; dc++) {
             int fila = miFila + df;
             int col = miCol + dc;
-            if (fila >= 0 && fila < tablero.length && 
-                col >= 0 && col < tablero[0].length) {
-                
+            if (fila >= 0 && fila < tablero.length && col >= 0 && col < tablero[0].length) {
                 Entidad e = tablero[fila][col];
                 if (e instanceof Aliado) {
                     Aliado aliado = (Aliado) e;
-                    int dist = distanciaManhattan(getPosicion(), aliado.getPosicion());
-                    
+                    int dist = distancia(getPosicion(), aliado.getPosicion());
                     if (dist < distMin) {
                         distMin = dist;
                         mejor = aliado;

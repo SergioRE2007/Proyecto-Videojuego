@@ -2,11 +2,11 @@ public class App {
 
     public static void main(String[] args) throws Exception {
 
-        final int filas = 30;
-        final int columnas = 60;
-        final int NUM_ENEMIGO = 109;
-        final int NUM_ALIADO = 600;
-        final int NUM_MURO = 0;
+        final int filas = 20;
+        final int columnas = 50;
+        final int NUM_ENEMIGO = 10;
+        final int NUM_ALIADO = 40;
+        final int NUM_MURO = 30;
 
         Entidad[][] tablero = new Entidad[filas][columnas];
 
@@ -29,11 +29,10 @@ public class App {
                         }
                     }
                 }
-                // Pintar
                 limpiarPantalla();
                 char[][] tabla2 = rellenabi(filas, columnas, tablero);
                 mostrarTableroSimple(tabla2);
-                Thread.sleep(60);
+                Thread.sleep(100);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -49,9 +48,9 @@ public class App {
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {
                 if (todos[i][j] != null) {
-                    array[i][j] = todos[i][j].getSimbolo(); // 'E', 'A', 'X'
+                    array[i][j] = todos[i][j].getSimbolo(); 
                 } else {
-                    array[i][j] = '.'; // vacío
+                    array[i][j] = '.'; 
                 }
             }
         }
@@ -63,11 +62,11 @@ public class App {
             for (int j = 0; j < tablero[i].length; j++) {
                 char c = tablero[i][j];
                 String salida;
-                if (c == 'X') { // enemigo
+                if (c == 'X') { 
                     salida = ROJO + " X " + RESET;
-                } else if (c == 'A') { // aliado
+                } else if (c == 'A') { 
                     salida = VERDE + " A " + RESET;
-                } else if (c == 'M') { // muro
+                } else if (c == 'M') { 
                     salida = AMARILLO + " M " + RESET;
                 } else {
                     salida = " . ";
