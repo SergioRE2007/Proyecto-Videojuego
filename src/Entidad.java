@@ -76,11 +76,10 @@ public abstract class Entidad {
 
         Entidad destino = tablero[nuevaFila][nuevaCol];
 
-        // Matar Aliado
         if (this instanceof Enemigo && destino instanceof Aliado) {
             tablero[nuevaFila][nuevaCol] = null;
         }
-        // no me muevo si hay algo
+
         if (tablero[nuevaFila][nuevaCol] != null) {
             return false;
         }

@@ -1,5 +1,4 @@
 public class App {
-
     public static void main(String[] args) throws Exception {
 
         final int filas = 20;
@@ -18,7 +17,6 @@ public class App {
         mostrarTableroSimple(tabla);
         while (true) {
             try {
-                // Mover
                 for (int f = 0; f < filas; f++) {
                     for (int c = 0; c < columnas; c++) {
                         Entidad e = tablero[f][c];

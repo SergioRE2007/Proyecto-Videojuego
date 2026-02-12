@@ -27,8 +27,8 @@ private static final int VISION = 5;
                 if (fila >= 0 && fila < tablero.length &&
                         col >= 0 && col < tablero[0].length) {
                     Entidad e = tablero[fila][col];
-                    if (e instanceof Enemigo) { // ← aquí Enemigo
-                        Enemigo enemigo = (Enemigo) e; // ← cast a Enemigo
+                    if (e instanceof Enemigo) {
+                        Enemigo enemigo = (Enemigo) e;
                         int dist = distancia(getPosicion(), enemigo.getPosicion());
                         if (dist < distMin) {
                             distMin = dist;
