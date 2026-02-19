@@ -1,41 +1,40 @@
 public class App {
     public static void main(String[] args) throws Exception {
-
-        final int filas = 20;
-        final int columnas = 50;
+        final int FILAS = 3;
+        final int COLUMNAS = 20;
         final int NUM_ENEMIGO = 10;
-        final int NUM_ALIADO = 40;
-        final int NUM_MURO = 30;
-
-        Entidad[][] tablero = new Entidad[filas][columnas];
-
-        tablero = rellenaEnemigo(NUM_ENEMIGO, filas, columnas, tablero);
-        tablero = rellenaAliado(NUM_ALIADO, filas, columnas, tablero);
-        tablero = rellenaMuro(NUM_MURO, filas, columnas, tablero);
-        char[][] tabla = rellenabi(filas, columnas, tablero);
-        System.out.println("TABLERO INICIAL");
-        mostrarTableroSimple(tabla);
+        final int NUM_ALIADO = 10;
+        final int NUM_MURO = 0;
+    
+        Entidad[][] tablero = new Entidad[FILAS][COLUMNAS];
+        tablero = rellenaMuro(NUM_MURO, FILAS, COLUMNAS, tablero);
+        tablero = rellenaEnemigo(NUM_ENEMIGO, FILAS, COLUMNAS, tablero);
+        tablero = rellenaAliado(NUM_ALIADO, FILAS, COLUMNAS, tablero);
+    
         while (true) {
             try {
-                for (int f = 0; f < filas; f++) {
-                    for (int c = 0; c < columnas; c++) {
-                        Entidad e = tablero[f][c];
+                Entidad[][] tableroNuevo = copiarTablero(tablero, FILAS, COLUMNAS);
+                for (int f = 0; f < FILAS; f++) {
+                    for (int c = 0; c < COLUMNAS; c++) {
+                        Entidad e = tablero[f][c];  
                         if (e instanceof Enemigo) {
-                            ((Enemigo) e).actuar(tablero);
+                            ((Enemigo) e).actuar(tableroNuevo);  
                         } else if (e instanceof Aliado) {
-                            ((Aliado) e).actuar(tablero);
+                            ((Aliado) e).actuar(tableroNuevo);   
                         }
                     }
                 }
+                tablero = tableroNuevo;
                 limpiarPantalla();
-                char[][] tabla2 = rellenabi(filas, columnas, tablero);
+                char[][] tabla2 = rellenabi(FILAS, COLUMNAS, tablero);
                 mostrarTableroSimple(tabla2);
-                Thread.sleep(100);
+                Thread.sleep(150);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
         }
     }
+    
     public static final String RESET = "\u001B[0m";
     public static final String ROJO = "\u001B[31m";
     public static final String VERDE = "\u001B[32m";
@@ -46,25 +45,25 @@ public class App {
         for (int i = 0; i < array.length; i++) {
             for (int j = 0; j < array[i].length; j++) {
                 if (todos[i][j] != null) {
-                    array[i][j] = todos[i][j].getSimbolo(); 
+                    array[i][j] = todos[i][j].getSimbolo();
                 } else {
-                    array[i][j] = '.'; 
+                    array[i][j] = '.';
                 }
             }
         }
         return array;
     }
-    
+
     public static void mostrarTableroSimple(char[][] tablero) {
         for (int i = 0; i < tablero.length; i++) {
             for (int j = 0; j < tablero[i].length; j++) {
                 char c = tablero[i][j];
                 String salida;
-                if (c == 'X') { 
+                if (c == 'X') {
                     salida = ROJO + " X " + RESET;
-                } else if (c == 'A') { 
+                } else if (c == 'A') {
                     salida = VERDE + " A " + RESET;
-                } else if (c == 'M') { 
+                } else if (c == 'M') {
                     salida = AMARILLO + " M " + RESET;
                 } else {
                     salida = " . ";
@@ -125,4 +124,11 @@ public class App {
         System.out.flush();
     }
 
+    public static Entidad[][] copiarTablero(Entidad[][] original, int FILAS, int COLUMNAS) {
+        Entidad[][] copia = new Entidad[FILAS][COLUMNAS];
+        for (int f = 0; f < FILAS; f++) {
+            System.arraycopy(original[f], 0, copia[f], 0, COLUMNAS);
+        }
+        return copia;
+    }
 }
