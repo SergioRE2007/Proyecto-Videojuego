@@ -1,66 +1,64 @@
 # Juego de Tablero en Java
 
-Proyecto de consola en Java donde **enemigos (X)** persiguen a **aliados (A)** en un tablero con **muros (M)** como obstáculos.  
-Está pensado como ejercicio de POO para el ciclo DAM: herencia, arrays bidimensionales e IA sencilla con campo de visión.
+Simulador de consola en Java donde **enemigos** persiguen a **aliados** en un tablero con **muros** como obstáculos.
+Pensado como ejercicio de POO para el ciclo DAM: herencia, arrays bidimensionales e IA sencilla con campo de visión.
 
-## 🎮 Características
+## Aspecto en consola
 
-- Tablero de tamaño configurable (ejemplo: 20 x 60).
-- Enemigos `X` que:
-  - Tienen un campo de visión limitado (n casillas alrededor).
-  - Buscan el aliado más cercano dentro de su visión.
-  - Se mueven una casilla por turno hacia el objetivo.
-  - Si no ven aliados, se mueven en una dirección aleatoria.
-  - Cuando alcanzan un aliado, lo eliminan y ocupan su casilla.
-- Aliados `A` que:
-  - Detectan el enemigo más cercano dentro de su visión.
-  - Se mueven una casilla por turno alejándose de él.
-  - Si no ven enemigos, también pueden moverse aleatoriamente.
-- Muros `M` que:
-  - Ocupan casillas fijas del tablero.
-  - No se pueden atravesar.
+```
+[=][=][=][=][=][=][=][=][=][=][=][=][=][=][=]...
+[=] .  .  .  .  .  o  .  .  .  .  .  .  . [=]
+[=] .  #  .  .  o  .  .  .  .  .  .  .  . [=]
+[=] .  #  . [=][=][=] .  o  .  .  o  .  . [=]
+[=] .  .  .  .  .  .  .  .  .  .  .  .  . [=]
+```
 
-## 🧱 Estructura del proyecto
+| Símbolo | Entidad  | Comportamiento |
+|---------|----------|----------------|
+| ` # `   | Enemigo  | Persigue al aliado más cercano dentro de su visión |
+| ` o `   | Aliado   | Huye del enemigo más cercano dentro de su visión   |
+| `[=]`   | Muro     | Obstáculo fijo, no se puede atravesar              |
 
-Clases principales:
+## Características
 
-- **App**  
-  Contiene el `main`, crea el tablero, coloca enemigos, aliados y muros en posiciones aleatorias y ejecuta el bucle de turnos.
+- Tablero configurable con **borde sólido** alrededor.
+- **Movimiento en 8 direcciones** (cardinales y diagonales).
+- Enemigos y aliados **rodean obstáculos automáticamente** — si el camino principal está bloqueado, intentan las direcciones alternativas.
+- Cada entidad actúa **exactamente una vez por turno**, sin teletransportaciones ni entidades fantasma.
+- **Renderizado sin parpadeo**: el frame se construye en memoria y se vuelca de golpe.
+- Generación de muros **lineales con giros**: cada pared mantiene una dirección y tiene un 20% de probabilidad de girar, creando formas naturales.
 
-- **Posicion**  
-  Representa una coordenada del tablero (`fila`, `columna`).
+## Parámetros configurables (en App.java)
 
-- **Entidad** (abstracta)  
-  Clase base de todo lo que ocupa una casilla.  
-  Gestiona:
-  - Posición y símbolo.
-  - Cálculo de distancia Manhattan.
-  - Movimiento (hacia, lejos, arriba/abajo/izquierda/derecha, aleatorio).
-  - Comprobación de colisiones y límites del tablero.
+```java
+final int FILAS = 20;
+final int COLUMNAS = 40;
+final int NUM_ENEMIGO = 20;
+final int NUM_ALIADO = 100;
+final int NUM_MURO = 60;
+final int PROB_PEGAR_MURO = 70; // % de que un muro nuevo se pegue a uno existente
+```
 
-- **Enemigo**  
-  Hereda de `Entidad`.  
-  Usa el símbolo `X` y define:
-  - Campo de visión.
-  - Búsqueda del aliado más cercano dentro de su visión.
-  - Comportamiento de persecución.
+- `PROB_PEGAR_MURO = 0` → muros completamente dispersos
+- `PROB_PEGAR_MURO = 70` → paredes largas con ramas
+- `PROB_PEGAR_MURO = 100` → una sola pared continua
 
-- **Aliado**  
-  Hereda de `Entidad`.  
-  Usa el símbolo `A` y define:
-  - Campo de visión.
-  - Búsqueda del enemigo más cercano dentro de su visión.
-  - Comportamiento de huida.
+## Estructura del proyecto
 
-- **Muro**  
-  Hereda de `Entidad`.  
-  Usa el símbolo `M` y actúa como obstáculo fijo.
+```
+src/
+├── App.java        main: inicializa el tablero y ejecuta el bucle de turnos
+├── Entidad.java    clase abstracta base: movimiento en 8 dirs, colisiones, distancia
+├── Enemigo.java    hereda de Entidad: campo de visión, persecución
+├── Aliado.java     hereda de Entidad: campo de visión, huida
+├── Muro.java       hereda de Entidad: obstáculo fijo
+└── Posicion.java   coordenada (fila, columna)
+bin/               bytecode compilado
+```
 
-## ⚙️ Parámetros configurables
+## Compilar y ejecutar
 
-En el código se pueden ajustar fácilmente:
-
-- Número de filas y columnas del tablero.
-- Número de enemigos, aliados y muros iniciales.
-- Radio de visión de enemigos y aliados.
-- Velocidad de la simulación (tiempo de espera entre turnos).
+```bash
+javac -d bin src/*.java
+java -cp bin App
+```
