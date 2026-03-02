@@ -2,6 +2,12 @@ public abstract class Entidad {
     protected Posicion posicion;
     protected char simbolo;
 
+    // Las 8 direcciones: cardinales + diagonales
+    private static final int[][] MOVIMIENTOS = {
+        {-1, 0}, {1, 0}, {0, -1}, {0, 1},
+        {-1, -1}, {-1, 1}, {1, -1}, {1, 1}
+    };
+
     public Entidad(Posicion pos, char simbolo) {
         this.posicion = pos;
         this.simbolo = simbolo;
@@ -20,53 +26,66 @@ public abstract class Entidad {
     }
 
     protected void moverHacia(Posicion destino, Entidad[][] tablero) {
-        int filaDestino = destino.getFila();
-        int colDestino = destino.getColumna();
-
-        if (filaDestino > posicion.getFila()) {
-            moverAbajo(tablero);
-        } else if (filaDestino < posicion.getFila()) {
-            moverArriba(tablero);
-        } else if (colDestino > posicion.getColumna()) {
-            moverDerecha(tablero);
-        } else if (colDestino < posicion.getColumna()) {
-            moverIzquierda(tablero);
-        }
+        int[][] movs = copiarMovimientos();
+        ordenarPorDistancia(movs, destino, true);
+        intentarMovimientos(movs, tablero);
     }
 
     protected void moverLejos(Posicion enemigoPos, Entidad[][] tablero) {
-        int filaEnemigo = enemigoPos.getFila();
-        int colEnemigo = enemigoPos.getColumna();
+        int[][] movs = copiarMovimientos();
+        ordenarPorDistancia(movs, enemigoPos, false);
+        intentarMovimientos(movs, tablero);
+    }
 
-        if (filaEnemigo > posicion.getFila()) {
-            moverArriba(tablero);
-        } else if (filaEnemigo < posicion.getFila()) {
-            moverAbajo(tablero);
-        } else if (colEnemigo > posicion.getColumna()) {
-            moverIzquierda(tablero);
-        } else if (colEnemigo < posicion.getColumna()) {
-            moverDerecha(tablero);
+    protected void moverRandom(Entidad[][] tablero) {
+        int[][] movs = copiarMovimientos();
+        // Fisher-Yates shuffle
+        for (int i = movs.length - 1; i > 0; i--) {
+            int j = (int) (Math.random() * (i + 1));
+            int[] tmp = movs[i];
+            movs[i] = movs[j];
+            movs[j] = tmp;
+        }
+        intentarMovimientos(movs, tablero);
+    }
+
+    private int[][] copiarMovimientos() {
+        int[][] copia = new int[MOVIMIENTOS.length][2];
+        for (int i = 0; i < MOVIMIENTOS.length; i++) {
+            copia[i][0] = MOVIMIENTOS[i][0];
+            copia[i][1] = MOVIMIENTOS[i][1];
+        }
+        return copia;
+    }
+
+    private void ordenarPorDistancia(int[][] movs, Posicion objetivo, boolean ascendente) {
+        for (int i = 0; i < movs.length - 1; i++) {
+            int mejorIdx = i;
+            int mejorDist = distancia(
+                new Posicion(posicion.getFila() + movs[i][0], posicion.getColumna() + movs[i][1]),
+                objetivo);
+            for (int j = i + 1; j < movs.length; j++) {
+                int dist = distancia(
+                    new Posicion(posicion.getFila() + movs[j][0], posicion.getColumna() + movs[j][1]),
+                    objetivo);
+                if (ascendente ? dist < mejorDist : dist > mejorDist) {
+                    mejorDist = dist;
+                    mejorIdx = j;
+                }
+            }
+            int[] tmp = movs[i];
+            movs[i] = movs[mejorIdx];
+            movs[mejorIdx] = tmp;
         }
     }
 
-    protected boolean moverArriba(Entidad[][] tablero) {
-        int nuevaFila = posicion.getFila() - 1;
-        return moverSiPosible(nuevaFila, posicion.getColumna(), tablero);
-    }
-
-    protected boolean moverAbajo(Entidad[][] tablero) {
-        int nuevaFila = posicion.getFila() + 1;
-        return moverSiPosible(nuevaFila, posicion.getColumna(), tablero);
-    }
-
-    protected boolean moverIzquierda(Entidad[][] tablero) {
-        int nuevaCol = posicion.getColumna() - 1;
-        return moverSiPosible(posicion.getFila(), nuevaCol, tablero);
-    }
-
-    protected boolean moverDerecha(Entidad[][] tablero) {
-        int nuevaCol = posicion.getColumna() + 1;
-        return moverSiPosible(posicion.getFila(), nuevaCol, tablero);
+    private boolean intentarMovimientos(int[][] movs, Entidad[][] tablero) {
+        for (int[] mov : movs) {
+            if (moverSiPosible(posicion.getFila() + mov[0], posicion.getColumna() + mov[1], tablero)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero) {
@@ -89,15 +108,5 @@ public abstract class Entidad {
         posicion.setColumna(nuevaCol);
         tablero[nuevaFila][nuevaCol] = this;
         return true;
-    }
-
-    protected void moverRandom(Entidad[][] tablero) {
-        int dir = (int) (Math.random() * 4);
-        switch (dir) {
-            case 0 -> moverArriba(tablero);
-            case 1 -> moverAbajo(tablero);
-            case 2 -> moverIzquierda(tablero);
-            case 3 -> moverDerecha(tablero);
-        }
     }
 }
