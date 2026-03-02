@@ -48,7 +48,7 @@ public class App {
                 limpiarPantalla();
                 char[][] tabla2 = rellenabi(FILAS, COLUMNAS, tablero);
                 mostrarTableroSimple(tabla2);
-                Thread.sleep(100);
+                Thread.sleep(150);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -187,4 +187,11 @@ public class App {
         System.out.print("\033[H");
     }
 
+    public static Entidad[][] copiarTablero(Entidad[][] original, int FILAS, int COLUMNAS) {
+        Entidad[][] copia = new Entidad[FILAS][COLUMNAS];
+        for (int f = 0; f < FILAS; f++) {
+            System.arraycopy(original[f], 0, copia[f], 0, COLUMNAS);
+        }
+        return copia;
+    }
 }
