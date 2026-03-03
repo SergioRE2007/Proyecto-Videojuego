@@ -9,18 +9,18 @@ public class App {
     public static void main(String[] args) throws Exception {
         final int FILAS = 20;
         final int COLUMNAS = 20;
-        final int NUM_ENEMIGO = 100;
-        final int NUM_ALIADO = 1;
+        final int NUM_ENEMIGO = 1;
+        final int NUM_ALIADO = 10;
         final int NUM_MURO = 60;
         final int PROB_PEGAR_MURO = 70;
         final int NUM_ESCUDO = 5;
         final int NUM_ARMA = 3;
-        final int NUM_ESTRELLA = 2;
+        final int NUM_ESTRELLA = 0;
         final int TURNOS_SPAWN_OBJETO = 150;
-        final int VIDA_ALIADO = 5000;
-        final int VIDA_ENEMIGO = 100;
-        final int DANIO_ENEMIGO_MIN = 20;
-        final int DANIO_ENEMIGO_MAX = 30;
+        final int VIDA_ALIADO = 100;
+        final int VIDA_ENEMIGO = 1000;
+        final int DANIO_ENEMIGO_MIN = 50;
+        final int DANIO_ENEMIGO_MAX = 100;
         final int DANIO_BASE_ALIADO_MIN = 30;
         final int DANIO_BASE_ALIADO_MAX = 50;
         final int VISION_ALIADO = 5;
@@ -108,6 +108,10 @@ public class App {
                         + "  |  " + ROJO + "Enemigos: " + numEnemigos + RESET + "\033[K");
 
                 // Comprobar fin de partida
+                if (numAliados == 0 && numEnemigos == 0) {
+                    System.out.println(AMARILLO + " Empate! Ambos bandos han caido al mismo tiempo." + RESET);
+                    break;
+                }
                 if (numAliados == 0) {
                     System.out.println(ROJO + " Los enemigos han ganado! Todos los aliados han caido." + RESET);
                     break;
