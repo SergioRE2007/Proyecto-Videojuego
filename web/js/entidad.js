@@ -153,12 +153,28 @@ export class Entidad {
             return false;
         }
 
+        // Celdas vacias (abismo) son intransitables
+        if (board.esVacio && board.esVacio(nuevaFila, nuevaCol)) {
+            return false;
+        }
+
         // Aliados detectan trampas y las esquivan
         if (this instanceof Aliado && board.getTrampa(nuevaFila, nuevaCol) !== null) {
             return false;
         }
 
         const destino = board.getEntidad(nuevaFila, nuevaCol);
+
+        // Enemigo ataca Muro destructible (vida < 9999)
+        if (this instanceof Enemigo && destino instanceof Muro && destino.vida < 9999) {
+            const danioMuro = this.getDanio();
+            this.danioInfligido += danioMuro;
+            destino.recibirDanio(danioMuro);
+            if (!destino.estaVivo()) {
+                board.setEntidad(nuevaFila, nuevaCol, null);
+            }
+            return false; // no se mueve, solo ataca
+        }
 
         // Enemigo ataca Aliado
         if (this instanceof Enemigo && destino instanceof Aliado) {
@@ -394,8 +410,8 @@ export class EnemigoRapido extends Enemigo {
 // ==================== Muro ====================
 
 export class Muro extends Entidad {
-    constructor(fila, columna) {
-        super(fila, columna, 'M', 0);
+    constructor(fila, columna, vida = 9999) {
+        super(fila, columna, 'M', vida);
     }
 
     actuar(board) {

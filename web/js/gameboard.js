@@ -9,7 +9,11 @@ export class GameBoard {
         this.entidades = Array.from({ length: filas }, () => new Array(columnas).fill(null));
         this.objetos = Array.from({ length: filas }, () => new Array(columnas).fill(null));
         this.trampas = Array.from({ length: filas }, () => new Array(columnas).fill(null));
+        this.vacio = Array.from({ length: filas }, () => new Array(columnas).fill(false));
     }
+
+    esVacio(f, c) { return this.vacio[f][c]; }
+    setVacio(f, c, v) { this.vacio[f][c] = v; }
 
     getEntidad(f, c) { return this.entidades[f][c]; }
     setEntidad(f, c, e) { this.entidades[f][c] = e; }

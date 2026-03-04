@@ -7,8 +7,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>JUEGO DE TABLERO</h1>
-    <div id="layout">
+    <!-- ==================== Menu Principal ==================== -->
+    <div id="menuPrincipal">
+        <h1 class="menu-titulo">JUEGO DE TABLERO</h1>
+        <p class="menu-subtitulo">Elige un modo de juego</p>
+        <div class="menu-botones">
+            <button id="btnSandbox" class="menu-btn">
+                <span class="menu-btn-icon">&#9881;</span>
+                <span class="menu-btn-label">SANDBOX</span>
+                <span class="menu-btn-desc">Simulador libre. Configura y observa.</span>
+            </button>
+            <button id="btnOleadas" class="menu-btn">
+                <span class="menu-btn-icon">&#9876;</span>
+                <span class="menu-btn-label">OLEADAS</span>
+                <span class="menu-btn-desc">Tower defense. Defiende y sobrevive.</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== Layout Sandbox ==================== -->
+    <div id="layout" style="display:none">
         <aside id="toolbox">
             <h2>COLOCAR</h2>
             <div class="tool-group">
@@ -35,11 +53,20 @@
         </aside>
         <div id="gameArea">
             <div id="botones">
+                <button id="btnVolverSandbox" class="btn-volver">&larr; MEN&Uacute;</button>
                 <button id="btnIniciar">INICIAR PARTIDA</button>
                 <button id="btnPausa" style="display:none">PAUSAR</button>
                 <button id="btnFinalizar" style="display:none">FINALIZAR</button>
             </div>
-            <canvas id="gameCanvas"></canvas>
+            <div id="zoomControls">
+                <button id="btnZoomOut" title="Alejar">-</button>
+                <span id="zoomLevel">100%</span>
+                <button id="btnZoomIn" title="Acercar">+</button>
+                <button id="btnZoomFit" title="Ajustar">Ajustar</button>
+            </div>
+            <div id="canvasContainer">
+                <canvas id="gameCanvas"></canvas>
+            </div>
             <div id="hud"></div>
             <div id="stats"></div>
         </div>
@@ -132,6 +159,26 @@
             </details>
         </aside>
     </div>
+
+    <!-- ==================== Layout Oleadas ==================== -->
+    <div id="layoutOleadas" style="display:none">
+        <div id="oleadasGameArea">
+            <div id="oleadasBotones">
+                <button id="btnVolverOleadas" class="btn-volver">&larr; MEN&Uacute;</button>
+                <button id="btnIniciarOleada" class="btn-oleada">INICIAR OLEADA</button>
+                <button id="btnPausaOleadas" style="display:none">PAUSAR</button>
+            </div>
+            <div id="oleadasCanvasContainer">
+                <canvas id="oleadasCanvas"></canvas>
+            </div>
+            <div id="hudOleadas"></div>
+        </div>
+        <aside id="tienda">
+            <h2>TIENDA</h2>
+            <div id="tiendaContenido"></div>
+        </aside>
+    </div>
+
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
