@@ -1,95 +1,97 @@
-# Juego de Tablero en Java
+# Juego de Tablero
 
-Simulador de consola en Java donde **enemigos** persiguen a **aliados** en un tablero con **muros** como obstáculos.
-Los aliados pueden recoger **objetos** (escudos, armas, estrellas) para sobrevivir.
-Pensado como ejercicio de POO para el ciclo DAM: herencia, paquetes, arrays bidimensionales e IA con campo de visión.
+Simulador de tablero donde **enemigos** persiguen a **aliados** en una cuadricula con **muros** como obstaculos.
+Los aliados pueden recoger **objetos** (escudos, armas, estrellas, pociones, velocidad) para sobrevivir.
+Proyecto de POO para el ciclo DAM: herencia, paquetes, arrays bidimensionales e IA con campo de vision.
 
-## Aspecto en consola
+**Dos versiones**: consola Java y web interactiva con Canvas 2D.
 
-```
-[=][=][=][=][=][=][=][=][=][=][=][=][=][=][=]...
-[=] .  .  .  S  .  o  .  .  .  .  .  .  . [=]
-[=] .  #  .  .  o  .  .  W  .  .  .  .  . [=]
-[=] .  #  . [=][=][=] .  o  .  .  o  .  . [=]
-[=] .  .  .  .  .  *  .  .  .  .  .  .  . [=]
-```
+## Version Web
 
-| Simbolo | Entidad/Objeto | Comportamiento |
-|---------|----------------|----------------|
-| ` # `   | Enemigo        | Persigue al aliado mas cercano dentro de su vision |
-| ` o `   | Aliado         | Huye de enemigos, busca objetos activamente |
-| `[=]`   | Muro           | Obstaculo fijo, no se puede atravesar |
-| ` S `   | Escudo         | Absorbe daño al aliado que lo recoge |
-| ` W `   | Arma           | Aumenta el contraataque del aliado |
-| ` * `   | Estrella       | Invencibilidad temporal (efecto rainbow al moverse) |
+Disponible en: **https://sergiorere2007.github.io/Proyecto-Videojuego/**
 
-## Caracteristicas
+### Funcionalidades
 
-- Tablero configurable con **borde solido** alrededor.
-- **Movimiento en 8 direcciones** (cardinales y diagonales).
-- **Sistema de combate**: los enemigos atacan aliados al contacto, los aliados contraatacan automaticamente.
-- **Objetos recogibles**: escudos, armas y estrellas que aparecen en el mapa y se regeneran cada N turnos.
-- **IA inteligente de aliados**: buscan objetos activamente, pero priorizan huir si hay un enemigo cerca (salvo que el objeto les pille de camino).
-- **Estrella de invencibilidad**: el aliado con estrella persigue enemigos y los mata al contacto, con efecto de colores ciclicos tipo Mario.
-- **Anti-oscilacion**: las entidades evitan volver a la casilla anterior, eliminando el bug de quedarse yendo de un lado a otro.
-- Enemigos y aliados **rodean obstaculos automaticamente**.
-- Cada entidad actua **exactamente una vez por turno**.
-- **Renderizado sin parpadeo**: el frame se construye en memoria y se vuelca de golpe.
-- Generacion de muros **lineales con giros**: cada pared mantiene una direccion y tiene un 20% de probabilidad de girar.
+- **Tablero con Canvas 2D** — renderizado celda por celda con colores
+- **Panel de ajustes** (derecha) — todos los parametros configurables en tiempo real
+- **Panel de colocacion** (izquierda) — click o arrastrar para colocar entidades, objetos, trampas o borrar
+- **Controles**: iniciar, pausar/reanudar, finalizar
+- **Modo libre** — la partida no termina sola, resultado por kills al finalizar
+- **Mapa vacio** — tablero limpio para sandbox manual
+- **Velocidad ajustable en tiempo real**
+- **Estadisticas post-partida** con MVP por faccion
+- Al cambiar ajustes antes de iniciar, el tablero se regenera automaticamente
 
-## Parametros configurables (en App.java)
+### Entidades y objetos
 
-```java
-// Tablero
-final int FILAS = 20;
-final int COLUMNAS = 20;
-final int NUM_ENEMIGO = 30;
-final int NUM_ALIADO = 20;
-final int NUM_MURO = 60;
-final int PROB_PEGAR_MURO = 70;
+| Simbolo | Tipo | Color | Comportamiento |
+|---------|------|-------|----------------|
+| `o` | Aliado | Verde | Huye de enemigos, busca objetos |
+| `#` | Enemigo | Rojo | Persigue al aliado mas cercano |
+| `T` | Tanque | Rojo oscuro | Enemigo lento (actua cada 2 turnos), mucha vida y danio |
+| `¤` | Rapido | Amarillo | Enemigo con doble movimiento |
+| `[=]` | Muro | Amarillo | Obstaculo fijo |
+| `^` | Trampa | Gris | Hace danio a quien pise (aliados las esquivan) |
+| `S` | Escudo | Cyan | Absorbe danio |
+| `W` | Arma | Morado | Aumenta contraataque |
+| `*` | Estrella | Amarillo brillante | Invencibilidad temporal (efecto arcoiris) |
+| `V` | Velocidad | Azul | Doble movimiento temporal |
+| `+` | Pocion | Verde claro | Cura vida |
 
-// Objetos
-final int NUM_ESCUDO = 5;
-final int NUM_ARMA = 3;
-final int NUM_ESTRELLA = 2;
-final int TURNOS_SPAWN_OBJETO = 150;
+### Tipos de mapa
 
-// Stats de aliados
-final int VIDA_ALIADO = 100;
-final int DANIO_BASE_ALIADO_MIN = 3;
-final int DANIO_BASE_ALIADO_MAX = 5;
-final int VISION_ALIADO = 5;
+- **Arena** — recinto central con entradas y muros extra
+- **Abierto** — muros lineales aleatorios con tendencia a agruparse
+- **Salas** — habitaciones con puertas
+- **Laberinto** — generado con DFS + 30% de muros eliminados
+- **Vacio** — solo bordes, para colocacion manual
 
-// Stats de enemigos
-final int VIDA_ENEMIGO = 100;
-final int DANIO_ENEMIGO_MIN = 20;
-final int DANIO_ENEMIGO_MAX = 30;
-final int VISION_ENEMIGO = 5;
+## Version Consola (Java)
+
+### Compilar y ejecutar
+
+```bash
+javac -d bin src/utils/*.java src/objetos/*.java src/entidades/*.java src/GameEngine.java src/App.java
+java -cp bin App
 ```
 
-## Estructura del proyecto
+### Estructura del proyecto
 
 ```
 src/
-├── App.java              main: tablero, game loop, renderizado
+├── App.java                  Entry point (~25 lineas)
+├── GameEngine.java           Game loop: tick(), deteccion fin, estado
 ├── entidades/
-│   ├── Entidad.java      clase abstracta: movimiento, combate, anti-oscilacion
-│   ├── Enemigo.java      persecucion con vision y daño configurable
-│   ├── Aliado.java       huida, busqueda de objetos, invencibilidad
-│   └── Muro.java         obstaculo fijo
+│   ├── Entidad.java          Clase abstracta: movimiento 8 dirs, combate, anti-oscilacion
+│   ├── Enemigo.java          Persecucion con vision y danio configurable
+│   ├── EnemigoTanque.java    Actua cada 2 turnos, mucha vida
+│   ├── EnemigoRapido.java    Doble movimiento
+│   ├── Aliado.java           Huida, busqueda de objetos, invencibilidad
+│   ├── Muro.java             Obstaculo fijo
+│   └── Trampa.java           Danio por posicion
 ├── objetos/
-│   ├── Objeto.java       clase abstracta de objetos recogibles
-│   ├── Escudo.java       absorbe daño
-│   ├── Arma.java         aumenta contraataque
-│   └── Estrella.java     invencibilidad temporal
+│   ├── Objeto.java           Clase abstracta de objetos recogibles
+│   ├── Escudo.java           Absorbe danio
+│   ├── Arma.java             Aumenta contraataque
+│   ├── Estrella.java         Invencibilidad temporal
+│   ├── Velocidad.java        Doble movimiento temporal
+│   └── Pocion.java           Cura vida
 └── utils/
-    └── Posicion.java     coordenada (fila, columna)
-bin/                      bytecode compilado
-```
-
-## Compilar y ejecutar
-
-```bash
-javac -d bin src/utils/*.java src/objetos/*.java src/entidades/*.java src/App.java
-java -cp bin App
+    ├── GameConfig.java       Todos los parametros configurables
+    ├── GameBoard.java        3 arrays 2D + generacion de mapas
+    ├── Renderer.java         Renderizado ANSI (tablero + HUD + stats)
+    ├── Posicion.java         Coordenada (fila, columna)
+    └── Rng.java              Random global
+web/
+├── index.html
+├── style.css
+└── js/
+    ├── config.js             Parametros configurables
+    ├── rng.js                PRNG seedable (mulberry32)
+    ├── gameboard.js          3 arrays 2D + generacion de mapas
+    ├── entidad.js            Todas las entidades
+    ├── objetos.js            Todos los objetos + trampa
+    ├── engine.js             Game loop
+    ├── renderer.js           Canvas 2D + HUD + stats
+    └── app.js                Entry point + UI
 ```
