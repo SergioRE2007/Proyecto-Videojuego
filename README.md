@@ -8,7 +8,7 @@ Proyecto de POO para el ciclo DAM: herencia, paquetes, arrays bidimensionales e 
 
 ## Version Web
 
-Disponible en: **https://sergiorere2007.github.io/Proyecto-Videojuego/**
+Disponible en: **https://sergiore2007.github.io/Proyecto-Videojuego/**
 
 ### Funcionalidades
 
