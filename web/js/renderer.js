@@ -3,6 +3,43 @@ import { Escudo, Arma, Estrella, Velocidad, Pocion, Trampa } from './objetos.js'
 
 const COLORES_ESTRELLA = ['#ef4444', '#eab308', '#22c55e', '#06b6d4', '#a855f7', '#f5f5f5'];
 
+const SPRITES_PATH = '0x72_DungeonTilesetII_v1.7/frames/';
+
+const SPRITE_MAP = {
+    aliado:     'knight_m_idle_anim_f1.png',
+    aliadoStar: 'angel_idle_anim_f0.png',
+    enemigo:    'goblin_idle_anim_f0.png',
+    tanque:     'ogre_idle_anim_f0.png',
+    rapido:     'chort_idle_anim_f0.png',
+    muro:       'wall_mid.png',
+    trampa:     'floor_spikes_anim_f3.png',
+    escudo:     'flask_blue.png',
+    arma:       'weapon_red_gem_sword.png',
+    estrella:   'coin_anim_f0.png',
+    velocidad:  'flask_yellow.png',
+    pocion:     'flask_red.png',
+    suelo:      'floor_1.png',
+};
+
+function cargarSprites() {
+    const sprites = {};
+    const promesas = [];
+    for (const [key, file] of Object.entries(SPRITE_MAP)) {
+        const img = new Image();
+        img.src = SPRITES_PATH + file;
+        sprites[key] = img;
+        promesas.push(new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve; // no bloquear si falta alguno
+        }));
+    }
+    return { sprites, ready: Promise.all(promesas) };
+}
+
+const { sprites, ready: spritesReady } = cargarSprites();
+let spritesLoaded = false;
+export const spritesListos = spritesReady.then(() => { spritesLoaded = true; });
+
 export class Renderer {
     constructor(canvas, hudDiv, statsDiv) {
         this.canvas = canvas;
@@ -19,94 +56,68 @@ export class Renderer {
         const ctx = this.ctx;
 
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        const fontSize = Math.floor(Math.min(cellW, cellH) * 0.65);
-        ctx.font = `bold ${fontSize}px monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.imageSmoothingEnabled = false; // pixel art nítido
 
         for (let f = 0; f < filas; f++) {
             for (let c = 0; c < columnas; c++) {
                 const x = c * cellW;
                 const y = f * cellH;
-                const cx = x + cellW / 2;
-                const cy = y + cellH / 2;
 
-                const e = board.getEntidad(f, c);
-
-                if (e !== null) {
-                    if (e instanceof Muro) {
-                        ctx.fillStyle = '#78716c';
-                        ctx.fillRect(x, y, cellW, cellH);
-                        ctx.fillStyle = '#eab308';
-                        ctx.fillText('[=]', cx, cy);
-                    } else if (e instanceof EnemigoTanque) {
-                        ctx.fillStyle = '#1a1a2e';
-                        ctx.fillRect(x, y, cellW, cellH);
-                        ctx.fillStyle = '#dc2626';
-                        ctx.fillText('T', cx, cy);
-                    } else if (e instanceof EnemigoRapido) {
-                        ctx.fillStyle = '#1a1a2e';
-                        ctx.fillRect(x, y, cellW, cellH);
-                        ctx.fillStyle = '#eab308';
-                        ctx.fillText('\u00A4', cx, cy);
-                    } else if (e instanceof Enemigo) {
-                        ctx.fillStyle = '#1a1a2e';
-                        ctx.fillRect(x, y, cellW, cellH);
-                        ctx.fillStyle = '#ef4444';
-                        ctx.fillText('#', cx, cy);
-                    } else if (e instanceof Aliado) {
-                        ctx.fillStyle = '#1a1a2e';
-                        ctx.fillRect(x, y, cellW, cellH);
-                        if (e.turnosInvencible > 0) {
-                            ctx.fillStyle = COLORES_ESTRELLA[turno % COLORES_ESTRELLA.length];
-                        } else {
-                            ctx.fillStyle = '#22c55e';
-                        }
-                        ctx.fillText('o', cx, cy);
-                    } else {
-                        ctx.fillStyle = '#1a1a2e';
-                        ctx.fillRect(x, y, cellW, cellH);
-                    }
-                } else if (board.getObjeto(f, c) !== null) {
-                    ctx.fillStyle = '#1a1a2e';
-                    ctx.fillRect(x, y, cellW, cellH);
-                    const obj = board.getObjeto(f, c);
-                    if (obj instanceof Escudo) {
-                        ctx.fillStyle = '#06b6d4';
-                        ctx.fillText('S', cx, cy);
-                    } else if (obj instanceof Arma) {
-                        ctx.fillStyle = '#a855f7';
-                        ctx.fillText('W', cx, cy);
-                    } else if (obj instanceof Velocidad) {
-                        ctx.fillStyle = '#3b82f6';
-                        ctx.fillText('V', cx, cy);
-                    } else if (obj instanceof Estrella) {
-                        ctx.fillStyle = '#facc15';
-                        ctx.fillText('*', cx, cy);
-                    } else if (obj instanceof Pocion) {
-                        ctx.fillStyle = '#4ade80';
-                        ctx.fillText('+', cx, cy);
-                    } else {
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(obj.simbolo, cx, cy);
-                    }
-                } else if (board.getTrampa(f, c) !== null) {
-                    ctx.fillStyle = '#1a1a2e';
-                    ctx.fillRect(x, y, cellW, cellH);
-                    ctx.fillStyle = '#9ca3af';
-                    ctx.fillText('^', cx, cy);
+                // Suelo siempre de fondo (estirar a celda completa)
+                if (spritesLoaded && sprites.suelo.complete && sprites.suelo.naturalWidth) {
+                    ctx.drawImage(sprites.suelo, x, y, cellW, cellH);
                 } else {
                     ctx.fillStyle = '#1a1a2e';
                     ctx.fillRect(x, y, cellW, cellH);
-                    ctx.fillStyle = '#333347';
-                    ctx.fillText('.', cx, cy);
+                }
+
+                const e = board.getEntidad(f, c);
+                const obj = board.getObjeto(f, c);
+                const trampa = board.getTrampa(f, c);
+
+                // Trampa (debajo de entidades)
+                if (trampa !== null) {
+                    this._drawSprite(ctx, 'trampa', x, y, cellW, cellH);
+                }
+
+                // Objetos
+                if (obj !== null && e === null) {
+                    if (obj instanceof Escudo) {
+                        this._drawSprite(ctx, 'escudo', x, y, cellW, cellH);
+                    } else if (obj instanceof Arma) {
+                        this._drawSprite(ctx, 'arma', x, y, cellW, cellH);
+                    } else if (obj instanceof Estrella) {
+                        this._drawSprite(ctx, 'estrella', x, y, cellW, cellH);
+                    } else if (obj instanceof Velocidad) {
+                        this._drawSprite(ctx, 'velocidad', x, y, cellW, cellH);
+                    } else if (obj instanceof Pocion) {
+                        this._drawSprite(ctx, 'pocion', x, y, cellW, cellH);
+                    }
+                }
+
+                // Entidades
+                if (e !== null) {
+                    if (e instanceof Muro) {
+                        this._drawSpriteFill(ctx, 'muro', x, y, cellW, cellH);
+                    } else if (e instanceof EnemigoTanque) {
+                        this._drawSprite(ctx, 'tanque', x, y, cellW, cellH);
+                    } else if (e instanceof EnemigoRapido) {
+                        this._drawSprite(ctx, 'rapido', x, y, cellW, cellH);
+                    } else if (e instanceof Enemigo) {
+                        this._drawSprite(ctx, 'enemigo', x, y, cellW, cellH);
+                    } else if (e instanceof Aliado) {
+                        if (e.turnosInvencible > 0) {
+                            this._drawSprite(ctx, 'aliadoStar', x, y, cellW, cellH);
+                        } else {
+                            this._drawSprite(ctx, 'aliado', x, y, cellW, cellH);
+                        }
+                    }
                 }
             }
         }
 
         // Grid lines
-        ctx.strokeStyle = '#2a2a3e';
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
         ctx.lineWidth = 0.5;
         for (let f = 0; f <= filas; f++) {
             ctx.beginPath();
@@ -119,6 +130,35 @@ export class Renderer {
             ctx.moveTo(c * cellW, 0);
             ctx.lineTo(c * cellW, this.canvas.height);
             ctx.stroke();
+        }
+    }
+
+    _drawSpriteFill(ctx, key, x, y, w, h) {
+        const img = sprites[key];
+        if (spritesLoaded && img && img.complete && img.naturalWidth) {
+            ctx.drawImage(img, x, y, w, h);
+        }
+    }
+
+    _drawSprite(ctx, key, x, y, w, h) {
+        const img = sprites[key];
+        if (spritesLoaded && img && img.complete && img.naturalWidth) {
+            // Mantener proporcion original, centrado en la celda
+            const imgW = img.naturalWidth;
+            const imgH = img.naturalHeight;
+            const scale = Math.min(w / imgW, h / imgH);
+            const dw = imgW * scale;
+            const dh = imgH * scale;
+            const dx = x + (w - dw) / 2;
+            const dy = y + (h - dh) / 2 - h * 0.12;
+            ctx.drawImage(img, dx, dy, dw, dh);
+        } else {
+            const fontSize = Math.floor(Math.min(w, h) * 0.65);
+            ctx.font = `bold ${fontSize}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillText('?', x + w / 2, y + h / 2);
         }
     }
 

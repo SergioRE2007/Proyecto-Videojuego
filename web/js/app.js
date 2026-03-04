@@ -1,6 +1,6 @@
 import config from './config.js';
 import { GameEngine } from './engine.js';
-import { Renderer } from './renderer.js';
+import { Renderer, spritesListos } from './renderer.js';
 import { Aliado, Enemigo, EnemigoTanque, EnemigoRapido, Muro } from './entidad.js';
 import { Escudo, Arma, Estrella, Velocidad, Pocion, Trampa } from './objetos.js';
 
@@ -85,8 +85,8 @@ syncPanelToConfig();
 // ==================== Canvas ====================
 
 function resizeCanvas() {
-    canvas.width = config.columnas * 24;
-    canvas.height = config.filas * 24;
+    canvas.width = config.columnas * 32;
+    canvas.height = config.filas * 32;
 }
 
 // ==================== Generar partida (sin iniciar) ====================
@@ -117,8 +117,8 @@ function generarPartida() {
     enSetup = true;
 }
 
-// Generar al cargar la pagina
-generarPartida();
+// Generar al cargar la pagina (esperar sprites)
+spritesListos.then(() => generarPartida());
 
 // ==================== Toolbox (colocar) ====================
 
