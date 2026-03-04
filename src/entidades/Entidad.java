@@ -2,14 +2,24 @@ package entidades;
 
 import objetos.Objeto;
 import utils.Posicion;
+import utils.Rng;
 
 public abstract class Entidad {
     protected Posicion posicion;
     protected char simbolo;
     protected int vida;
     protected int vidaMax;
-    private int filaAnterior = -1;
-    private int colAnterior = -1;
+    protected Trampa[][] trampas;
+
+    public void setTrampas(Trampa[][] t) {
+        this.trampas = t;
+    }
+
+    // Historial de posiciones recientes para evitar ciclos
+    private static final int HISTORIAL_MAX = 5;
+    private int[] historialFilas = new int[HISTORIAL_MAX];
+    private int[] historialCols = new int[HISTORIAL_MAX];
+    private int historialSize = 0;
 
     // Las 8 direcciones: cardinales + diagonales
     private static final int[][] MOVIMIENTOS = {
@@ -91,7 +101,7 @@ public abstract class Entidad {
         int[][] movs = copiarMovimientos();
         // Fisher-Yates shuffle
         for (int i = movs.length - 1; i > 0; i--) {
-            int j = (int) (Math.random() * (i + 1));
+            int j = Rng.rng.nextInt(i + 1);
             int[] tmp = movs[i];
             movs[i] = movs[j];
             movs[j] = tmp;
@@ -129,21 +139,28 @@ public abstract class Entidad {
         }
     }
 
+    private boolean estaEnHistorial(int fila, int col) {
+        for (int i = 0; i < historialSize; i++) {
+            if (historialFilas[i] == fila && historialCols[i] == col) return true;
+        }
+        return false;
+    }
+
     private boolean intentarMovimientos(int[][] movs, Entidad[][] tablero) {
-        // Primer paso: intentar todo excepto volver a la posición anterior
+        // Primer paso: intentar todo excepto posiciones del historial
         for (int[] mov : movs) {
             int nf = posicion.getFila() + mov[0];
             int nc = posicion.getColumna() + mov[1];
-            if (nf == filaAnterior && nc == colAnterior) continue;
+            if (estaEnHistorial(nf, nc)) continue;
             if (moverSiPosible(nf, nc, tablero)) {
                 return true;
             }
         }
-        // Si nada funcionó, permitir volver atrás como último recurso
+        // Si nada funcionó, permitir volver a posiciones del historial
         for (int[] mov : movs) {
             int nf = posicion.getFila() + mov[0];
             int nc = posicion.getColumna() + mov[1];
-            if (nf == filaAnterior && nc == colAnterior) {
+            if (estaEnHistorial(nf, nc)) {
                 if (moverSiPosible(nf, nc, tablero)) {
                     return true;
                 }
@@ -154,6 +171,11 @@ public abstract class Entidad {
 
     private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero) {
         if (nuevaFila < 0 || nuevaFila >= tablero.length || nuevaCol < 0 || nuevaCol >= tablero[0].length) {
+            return false;
+        }
+
+        // Aliados detectan trampas y las esquivan
+        if (trampas != null && trampas[nuevaFila][nuevaCol] != null) {
             return false;
         }
 
@@ -170,7 +192,7 @@ public abstract class Entidad {
             }
             aliado.recibirDanio(((Enemigo) this).getDanio());
             // Contraataque: daño base configurable + daño extra por arma
-            int contraataque = aliado.getDanioBaseMin() + (int) (Math.random() * (aliado.getDanioBaseMax() - aliado.getDanioBaseMin() + 1)) + aliado.getDanioExtra();
+            int contraataque = aliado.getDanioBaseMin() + Rng.rng.nextInt(aliado.getDanioBaseMax() - aliado.getDanioBaseMin() + 1) + aliado.getDanioExtra();
             this.recibirDanio(contraataque);
             if (!this.estaVivo()) {
                 tablero[posicion.getFila()][posicion.getColumna()] = null;
@@ -201,8 +223,21 @@ public abstract class Entidad {
         posicion.setFila(nuevaFila);
         posicion.setColumna(nuevaCol);
         tablero[nuevaFila][nuevaCol] = this;
-        filaAnterior = filaVieja;
-        colAnterior = colVieja;
+
+        // Añadir posición vieja al historial (circular)
+        if (historialSize < HISTORIAL_MAX) {
+            historialFilas[historialSize] = filaVieja;
+            historialCols[historialSize] = colVieja;
+            historialSize++;
+        } else {
+            // Desplazar todo una posición y añadir al final
+            for (int i = 0; i < HISTORIAL_MAX - 1; i++) {
+                historialFilas[i] = historialFilas[i + 1];
+                historialCols[i] = historialCols[i + 1];
+            }
+            historialFilas[HISTORIAL_MAX - 1] = filaVieja;
+            historialCols[HISTORIAL_MAX - 1] = colVieja;
+        }
         return true;
     }
 }

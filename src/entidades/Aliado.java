@@ -12,6 +12,7 @@ public class Aliado extends Entidad {
     private int escudo;
     private int danioExtra;
     private int turnosInvencible;
+    private int turnosVelocidad;
 
     public Aliado(Posicion pos, int vida, int danioBaseMin, int danioBaseMax, int vision) {
         super(pos, 'A', vida);
@@ -21,6 +22,7 @@ public class Aliado extends Entidad {
         this.escudo = 0;
         this.danioExtra = 0;
         this.turnosInvencible = 0;
+        this.turnosVelocidad = 0;
     }
 
     public void addEscudo(int cantidad) {
@@ -39,6 +41,14 @@ public class Aliado extends Entidad {
         return turnosInvencible;
     }
 
+    public void setTurnosVelocidad(int turnos) {
+        this.turnosVelocidad = turnos;
+    }
+
+    public int getTurnosVelocidad() {
+        return turnosVelocidad;
+    }
+
     public int getDanioExtra() {
         return danioExtra;
     }
@@ -53,6 +63,10 @@ public class Aliado extends Entidad {
 
     public int getVision() {
         return vision;
+    }
+
+    public void curar(int cantidad) {
+        vida = Math.min(vida + cantidad, vidaMax);
     }
 
     @Override
@@ -75,6 +89,16 @@ public class Aliado extends Entidad {
 
     @Override
     public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
+        if (turnosVelocidad > 0) turnosVelocidad--;
+
+        int movimientos = turnosVelocidad > 0 ? 2 : 1;
+        for (int m = 0; m < movimientos; m++) {
+            if (!estaVivo()) break;
+            realizarMovimiento(tablero, objetos);
+        }
+    }
+
+    private void realizarMovimiento(Entidad[][] tablero, Objeto[][] objetos) {
         if (turnosInvencible > 0) {
             turnosInvencible--;
             // Con estrella, perseguir enemigos
