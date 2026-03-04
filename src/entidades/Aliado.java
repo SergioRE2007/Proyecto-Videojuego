@@ -1,6 +1,6 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
 
 public class Aliado extends Entidad {
@@ -13,6 +13,7 @@ public class Aliado extends Entidad {
     private int danioExtra;
     private int turnosInvencible;
     private int turnosVelocidad;
+    private int objetosRecogidosPersonal;
 
     public Aliado(Posicion pos, int vida, int danioBaseMin, int danioBaseMax, int vision) {
         super(pos, 'A', vida);
@@ -65,6 +66,14 @@ public class Aliado extends Entidad {
         return vision;
     }
 
+    public int getObjetosRecogidosPersonal() {
+        return objetosRecogidosPersonal;
+    }
+
+    public void incrementarObjetosRecogidos() {
+        objetosRecogidosPersonal++;
+    }
+
     public void curar(int cantidad) {
         vida = Math.min(vida + cantidad, vidaMax);
     }
@@ -88,37 +97,37 @@ public class Aliado extends Entidad {
     }
 
     @Override
-    public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
+    public void actuar(GameBoard board) {
         if (turnosVelocidad > 0) turnosVelocidad--;
 
         int movimientos = turnosVelocidad > 0 ? 2 : 1;
         for (int m = 0; m < movimientos; m++) {
             if (!estaVivo()) break;
-            realizarMovimiento(tablero, objetos);
+            realizarMovimiento(board);
         }
     }
 
-    private void realizarMovimiento(Entidad[][] tablero, Objeto[][] objetos) {
+    private void realizarMovimiento(GameBoard board) {
         if (turnosInvencible > 0) {
             turnosInvencible--;
             // Con estrella, perseguir enemigos
-            Entidad masCercano = buscarCercano(Enemigo.class, vision, tablero);
+            Entidad masCercano = buscarCercano(Enemigo.class, vision, board);
             if (masCercano != null) {
-                moverHacia(masCercano.getPosicion(), tablero);
+                moverHacia(masCercano.getPosicion(), board);
             } else {
-                moverRandom(tablero);
+                moverRandom(board);
             }
             return;
         }
 
-        Entidad enemigoCerca = buscarCercano(Enemigo.class, vision, tablero);
-        Posicion objetoCerca = buscarObjetoCercano(objetos, vision);
+        Entidad enemigoCerca = buscarCercano(Enemigo.class, vision, board);
+        Posicion objetoCerca = buscarObjetoCercano(board, vision);
 
         if (enemigoCerca == null) {
             if (objetoCerca != null) {
-                moverHacia(objetoCerca, tablero);
+                moverHacia(objetoCerca, board);
             } else {
-                moverRandom(tablero);
+                moverRandom(board);
             }
         } else {
             // Hay enemigo cerca
@@ -127,17 +136,17 @@ public class Aliado extends Entidad {
                 int distObjetoEnemigo = distancia(objetoCerca, enemigoCerca.getPosicion());
                 int distYoEnemigo = distancia(posicion, enemigoCerca.getPosicion());
                 if (distObjetoEnemigo >= distYoEnemigo) {
-                    moverHacia(objetoCerca, tablero);
+                    moverHacia(objetoCerca, board);
                 } else {
-                    moverLejos(enemigoCerca.getPosicion(), tablero);
+                    moverLejos(enemigoCerca.getPosicion(), board);
                 }
             } else {
-                moverLejos(enemigoCerca.getPosicion(), tablero);
+                moverLejos(enemigoCerca.getPosicion(), board);
             }
         }
     }
 
-    private Posicion buscarObjetoCercano(Objeto[][] objetos, int vision) {
+    private Posicion buscarObjetoCercano(GameBoard board, int vision) {
         Posicion mejor = null;
         int distMin = Integer.MAX_VALUE;
         int miFila = posicion.getFila();
@@ -146,8 +155,8 @@ public class Aliado extends Entidad {
             for (int dc = -vision; dc <= vision; dc++) {
                 int fila = miFila + df;
                 int col = miCol + dc;
-                if (fila >= 0 && fila < objetos.length && col >= 0 && col < objetos[0].length) {
-                    if (objetos[fila][col] != null) {
+                if (fila >= 0 && fila < board.getFilas() && col >= 0 && col < board.getColumnas()) {
+                    if (board.getObjeto(fila, col) != null) {
                         Posicion p = new Posicion(fila, col);
                         int dist = distancia(posicion, p);
                         if (dist < distMin) {

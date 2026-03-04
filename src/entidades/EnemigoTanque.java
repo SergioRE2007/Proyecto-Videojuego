@@ -1,6 +1,6 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
 
 public class EnemigoTanque extends Enemigo {
@@ -13,9 +13,9 @@ public class EnemigoTanque extends Enemigo {
     }
 
     @Override
-    public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
+    public void actuar(GameBoard board) {
         turnoInterno++;
-        if (turnoInterno % 2 != 0) return; // solo actúa en turnos pares
-        super.actuar(tablero, objetos);
+        if (turnoInterno % 2 != 0) return; // solo actua en turnos pares
+        super.actuar(board);
     }
 }

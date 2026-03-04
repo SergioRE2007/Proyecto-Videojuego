@@ -1,7 +1,8 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
+import utils.Rng;
 
 public class Enemigo extends Entidad {
 
@@ -17,7 +18,7 @@ public class Enemigo extends Entidad {
     }
 
     public int getDanio() {
-        return danioMin + (int) (Math.random() * (danioMax - danioMin + 1));
+        return danioMin + Rng.rng.nextInt(danioMax - danioMin + 1);
     }
 
     public int getDanioMin() {
@@ -29,12 +30,12 @@ public class Enemigo extends Entidad {
     }
 
     @Override
-    public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
-        Entidad masCercano = buscarCercano(Aliado.class, vision, tablero);
+    public void actuar(GameBoard board) {
+        Entidad masCercano = buscarCercano(Aliado.class, vision, board);
         if (masCercano != null) {
-            moverHacia(masCercano.getPosicion(), tablero);
+            moverHacia(masCercano.getPosicion(), board);
         } else {
-            moverRandom(tablero);
+            moverRandom(board);
         }
     }
 }

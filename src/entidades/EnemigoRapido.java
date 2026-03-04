@@ -1,6 +1,6 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
 
 public class EnemigoRapido extends Enemigo {
@@ -11,11 +11,11 @@ public class EnemigoRapido extends Enemigo {
     }
 
     @Override
-    public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
-        super.actuar(tablero, objetos);
+    public void actuar(GameBoard board) {
+        super.actuar(board);
         // Segundo movimiento (doble velocidad)
         if (estaVivo()) {
-            super.actuar(tablero, objetos);
+            super.actuar(board);
         }
     }
 }

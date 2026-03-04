@@ -5,12 +5,15 @@ import utils.Posicion;
 
 public class Arma extends Objeto {
 
-    public Arma(Posicion posicion) {
+    private int cantidad;
+
+    public Arma(Posicion posicion, int cantidad) {
         super(posicion, 'W');
+        this.cantidad = cantidad;
     }
 
     @Override
     public void aplicar(Aliado aliado) {
-        aliado.addDanioExtra(20);
+        aliado.addDanioExtra(cantidad);
     }
 }

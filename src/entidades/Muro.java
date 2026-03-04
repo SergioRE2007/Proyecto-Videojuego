@@ -1,6 +1,6 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
 
 public class Muro extends Entidad {
@@ -10,7 +10,7 @@ public class Muro extends Entidad {
     }
 
     @Override
-    public void actuar(Entidad[][] tablero, Objeto[][] objetos) {
+    public void actuar(GameBoard board) {
         // Los muros no actuan
     }
 }

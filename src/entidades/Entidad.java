@@ -1,25 +1,27 @@
 package entidades;
 
-import objetos.Objeto;
+import utils.GameBoard;
 import utils.Posicion;
 import utils.Rng;
 
 public abstract class Entidad {
+    private static int contadorId = 0;
+
     protected Posicion posicion;
     protected char simbolo;
     protected int vida;
     protected int vidaMax;
-    protected Trampa[][] trampas;
-
-    public void setTrampas(Trampa[][] t) {
-        this.trampas = t;
-    }
+    protected int id;
+    protected int danioInfligido;
+    protected int danioRecibido;
+    protected int kills;
 
     // Historial de posiciones recientes para evitar ciclos
     private static final int HISTORIAL_MAX = 5;
     private int[] historialFilas = new int[HISTORIAL_MAX];
     private int[] historialCols = new int[HISTORIAL_MAX];
     private int historialSize = 0;
+    private int historialIdx = 0;
 
     // Las 8 direcciones: cardinales + diagonales
     private static final int[][] MOVIMIENTOS = {
@@ -28,10 +30,15 @@ public abstract class Entidad {
     };
 
     public Entidad(Posicion pos, char simbolo, int vida) {
+        this.id = contadorId++;
         this.posicion = pos;
         this.simbolo = simbolo;
         this.vida = vida;
         this.vidaMax = vida;
+    }
+
+    public static void resetContadorId() {
+        contadorId = 0;
     }
 
     public Posicion getPosicion() {
@@ -55,13 +62,19 @@ public abstract class Entidad {
         return vida > 0;
     }
 
-    public abstract void actuar(Entidad[][] tablero, Objeto[][] objetos);
+    public int getId() { return id; }
+    public int getDanioInfligido() { return danioInfligido; }
+    public int getDanioRecibido() { return danioRecibido; }
+    public int getKills() { return kills; }
+    public void addDanioRecibido(int cantidad) { danioRecibido += cantidad; }
+
+    public abstract void actuar(GameBoard board);
 
     protected int distancia(Posicion p1, Posicion p2) {
         return Math.abs(p1.getFila() - p2.getFila()) + Math.abs(p1.getColumna() - p2.getColumna());
     }
 
-    protected Entidad buscarCercano(Class<?> tipo, int vision, Entidad[][] tablero) {
+    protected Entidad buscarCercano(Class<?> tipo, int vision, GameBoard board) {
         Entidad mejor = null;
         int distMin = Integer.MAX_VALUE;
         int miFila = posicion.getFila();
@@ -70,8 +83,8 @@ public abstract class Entidad {
             for (int dc = -vision; dc <= vision; dc++) {
                 int fila = miFila + df;
                 int col = miCol + dc;
-                if (fila >= 0 && fila < tablero.length && col >= 0 && col < tablero[0].length) {
-                    Entidad e = tablero[fila][col];
+                if (fila >= 0 && fila < board.getFilas() && col >= 0 && col < board.getColumnas()) {
+                    Entidad e = board.getEntidad(fila, col);
                     if (e != null && tipo.isInstance(e)) {
                         int dist = distancia(posicion, e.getPosicion());
                         if (dist < distMin) {
@@ -85,19 +98,19 @@ public abstract class Entidad {
         return mejor;
     }
 
-    protected void moverHacia(Posicion destino, Entidad[][] tablero) {
+    protected void moverHacia(Posicion destino, GameBoard board) {
         int[][] movs = copiarMovimientos();
         ordenarPorDistancia(movs, destino, true);
-        intentarMovimientos(movs, tablero);
+        intentarMovimientos(movs, board);
     }
 
-    protected void moverLejos(Posicion enemigoPos, Entidad[][] tablero) {
+    protected void moverLejos(Posicion enemigoPos, GameBoard board) {
         int[][] movs = copiarMovimientos();
         ordenarPorDistancia(movs, enemigoPos, false);
-        intentarMovimientos(movs, tablero);
+        intentarMovimientos(movs, board);
     }
 
-    protected void moverRandom(Entidad[][] tablero) {
+    protected void moverRandom(GameBoard board) {
         int[][] movs = copiarMovimientos();
         // Fisher-Yates shuffle
         for (int i = movs.length - 1; i > 0; i--) {
@@ -106,7 +119,7 @@ public abstract class Entidad {
             movs[i] = movs[j];
             movs[j] = tmp;
         }
-        intentarMovimientos(movs, tablero);
+        intentarMovimientos(movs, board);
     }
 
     private int[][] copiarMovimientos() {
@@ -146,22 +159,22 @@ public abstract class Entidad {
         return false;
     }
 
-    private boolean intentarMovimientos(int[][] movs, Entidad[][] tablero) {
+    private boolean intentarMovimientos(int[][] movs, GameBoard board) {
         // Primer paso: intentar todo excepto posiciones del historial
         for (int[] mov : movs) {
             int nf = posicion.getFila() + mov[0];
             int nc = posicion.getColumna() + mov[1];
             if (estaEnHistorial(nf, nc)) continue;
-            if (moverSiPosible(nf, nc, tablero)) {
+            if (moverSiPosible(nf, nc, board)) {
                 return true;
             }
         }
-        // Si nada funcionó, permitir volver a posiciones del historial
+        // Si nada funciono, permitir volver a posiciones del historial
         for (int[] mov : movs) {
             int nf = posicion.getFila() + mov[0];
             int nc = posicion.getColumna() + mov[1];
             if (estaEnHistorial(nf, nc)) {
-                if (moverSiPosible(nf, nc, tablero)) {
+                if (moverSiPosible(nf, nc, board)) {
                     return true;
                 }
             }
@@ -169,75 +182,79 @@ public abstract class Entidad {
         return false;
     }
 
-    private boolean moverSiPosible(int nuevaFila, int nuevaCol, Entidad[][] tablero) {
-        if (nuevaFila < 0 || nuevaFila >= tablero.length || nuevaCol < 0 || nuevaCol >= tablero[0].length) {
+    private boolean moverSiPosible(int nuevaFila, int nuevaCol, GameBoard board) {
+        if (nuevaFila < 0 || nuevaFila >= board.getFilas() || nuevaCol < 0 || nuevaCol >= board.getColumnas()) {
             return false;
         }
 
         // Aliados detectan trampas y las esquivan
-        if (trampas != null && trampas[nuevaFila][nuevaCol] != null) {
+        if (this instanceof Aliado && board.getTrampa(nuevaFila, nuevaCol) != null) {
             return false;
         }
 
-        Entidad destino = tablero[nuevaFila][nuevaCol];
+        Entidad destino = board.getEntidad(nuevaFila, nuevaCol);
 
         // Enemigo ataca Aliado
         if (this instanceof Enemigo && destino instanceof Aliado) {
             Aliado aliado = (Aliado) destino;
             if (aliado.getTurnosInvencible() > 0) {
                 // Aliado invencible: el enemigo muere
-                this.recibirDanio(100);
-                tablero[posicion.getFila()][posicion.getColumna()] = null;
+                aliado.danioInfligido += this.vida;
+                this.danioRecibido += this.vida;
+                aliado.kills++;
+                this.recibirDanio(this.vida);
+                board.setEntidad(posicion.getFila(), posicion.getColumna(), null);
                 return false;
             }
-            aliado.recibirDanio(((Enemigo) this).getDanio());
-            // Contraataque: daño base configurable + daño extra por arma
+            int danioEnemigo = ((Enemigo) this).getDanio();
+            this.danioInfligido += danioEnemigo;
+            aliado.danioRecibido += danioEnemigo;
+            aliado.recibirDanio(danioEnemigo);
+            // Contraataque: dano base configurable + dano extra por arma
             int contraataque = aliado.getDanioBaseMin() + Rng.rng.nextInt(aliado.getDanioBaseMax() - aliado.getDanioBaseMin() + 1) + aliado.getDanioExtra();
+            aliado.danioInfligido += contraataque;
+            this.danioRecibido += contraataque;
             this.recibirDanio(contraataque);
             if (!this.estaVivo()) {
-                tablero[posicion.getFila()][posicion.getColumna()] = null;
+                aliado.kills++;
+                board.setEntidad(posicion.getFila(), posicion.getColumna(), null);
                 return false;
             }
             if (aliado.estaVivo()) {
                 return false;
             }
-            tablero[nuevaFila][nuevaCol] = null;
+            this.kills++;
+            board.setEntidad(nuevaFila, nuevaCol, null);
         }
 
         // Aliado con estrella ataca Enemigo
         if (this instanceof Aliado && destino instanceof Enemigo) {
             Aliado aliado = (Aliado) this;
             if (aliado.getTurnosInvencible() > 0) {
-                destino.recibirDanio(100);
-                tablero[nuevaFila][nuevaCol] = null;
+                aliado.danioInfligido += destino.vida;
+                destino.danioRecibido += destino.vida;
+                aliado.kills++;
+                destino.recibirDanio(destino.vida);
+                board.setEntidad(nuevaFila, nuevaCol, null);
             }
         }
 
-        if (tablero[nuevaFila][nuevaCol] != null) {
+        if (board.getEntidad(nuevaFila, nuevaCol) != null) {
             return false;
         }
 
         int filaVieja = posicion.getFila();
         int colVieja = posicion.getColumna();
-        tablero[filaVieja][colVieja] = null;
+        board.setEntidad(filaVieja, colVieja, null);
         posicion.setFila(nuevaFila);
         posicion.setColumna(nuevaCol);
-        tablero[nuevaFila][nuevaCol] = this;
+        board.setEntidad(nuevaFila, nuevaCol, this);
 
-        // Añadir posición vieja al historial (circular)
-        if (historialSize < HISTORIAL_MAX) {
-            historialFilas[historialSize] = filaVieja;
-            historialCols[historialSize] = colVieja;
-            historialSize++;
-        } else {
-            // Desplazar todo una posición y añadir al final
-            for (int i = 0; i < HISTORIAL_MAX - 1; i++) {
-                historialFilas[i] = historialFilas[i + 1];
-                historialCols[i] = historialCols[i + 1];
-            }
-            historialFilas[HISTORIAL_MAX - 1] = filaVieja;
-            historialCols[HISTORIAL_MAX - 1] = colVieja;
-        }
+        // Anadir posicion vieja al historial (circular)
+        historialFilas[historialIdx] = filaVieja;
+        historialCols[historialIdx] = colVieja;
+        historialIdx = (historialIdx + 1) % HISTORIAL_MAX;
+        if (historialSize < HISTORIAL_MAX) historialSize++;
         return true;
     }
 }
